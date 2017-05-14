@@ -15,3 +15,43 @@ To run with maven
     mvn compile exec:java
 
 Open http://localhost:8081 to access the metrics.
+
+## Key bits and pieces
+
+
+1. Start Vert.x with Dropwizard Metrics
++
+.VertxApplication.java
+[source,indent=0]
+----
+        vertx = Vertx.vertx(new VertxOptions().setMetricsOptions(
+            new DropwizardMetricsOptions()
+                // ensure that you give the registry a name (will need it later for prometheus simple client)
+                .setRegistryName("vertx")
+                .addMonitoredHttpClientEndpoint(
+                    new Match().setValue(".*").setType(MatchType.REGEX))
+                .setEnabled(true)
+        ));
+----
+
+2. Expose Dropwizard Metrics (and possibly JVM metrics) to Prometheus
++
+.VerticleWeb.java
+[source,indent=0]
+----
+        // add default and dropwizard metrics to prometheus simple clinet
+        DefaultExports.initialize();
+        // name of the registry needs to match the name at Vert.x startup
+        new DropwizardExports(SharedMetricRegistries.getOrCreate("vertx")).register();
+----
+
+3. Expose Prometheus Metrics via HTTP
++
+.VerticleWeb.java
+[source,indent=0]
+----
+        // map /manage/metrics to prometheus simple client
+        final Router apiRouter = Router.router(vertx);
+        router.mountSubRouter("/manage", apiRouter);
+        apiRouter.route("/metrics").getDelegate().handler(new MetricsHandler());
+----
