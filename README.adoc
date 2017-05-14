@@ -1,0 +1,17 @@
+# Minimal example on how to setup Vert.x with Prometheus
+
+## What to expect
+
+Run a Vert.x application an read metrics from JVM and Vert.x using a Prometheus endpoint.
+
+## Motivation
+
+There is
+
+## How to Run
+
+To run with maven
+
+    mvn compile exec:java
+
+Open http://localhost:8081 to access the metrics.
