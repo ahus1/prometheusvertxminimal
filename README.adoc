@@ -1,14 +1,14 @@
-# Minimal example on how to setup Vert.x with Prometheus
+= Minimal example on how to setup Vert.x with Prometheus
 
-## What to expect
+== What to expect
 
 Run a Vert.x application an read metrics from JVM and Vert.x using a Prometheus endpoint.
 
-## Motivation
+== Motivation
 
-There is
+There used to be no minimal example as part of the Prometheus' Java Client available.
 
-## How to Run
+== How to Run
 
 To run with maven
 
@@ -16,33 +16,36 @@ To run with maven
 
 Open http://localhost:8081 to access the metrics.
 
-## Key bits and pieces
+New metrics abouts Vert.x will appear as they are used for the the first time.
+Example: the metrics about the event bus will appear once the first event is sent to the event bus.
+
+More information: https://vertx.io/docs/vertx-micrometer-metrics/java/
+
+== Key bits and pieces
 
 
-1. Start Vert.x with Dropwizard Metrics
+1. Start Vert.x with Micrometer Metrics
 +
 .VertxApplication.java
 [source,indent=0]
 ----
         vertx = Vertx.vertx(new VertxOptions().setMetricsOptions(
-            new DropwizardMetricsOptions()
-                // ensure that you give the registry a name (will need it later for prometheus simple client)
-                .setRegistryName("vertx")
-                .addMonitoredHttpClientEndpoint(
-                    new Match().setValue(".*").setType(MatchType.REGEX))
-                .setEnabled(true)
+                new MicrometerMetricsOptions()
+                        .setPrometheusOptions(new VertxPrometheusOptions().setEnabled(true))
+                        .setEnabled(true)
         ));
 ----
 
-2. Expose Dropwizard Metrics (and possibly JVM metrics) to Prometheus
+2. Expose additional metrics (i.e. JVM metrics) to Prometheus
 +
 .VerticleWeb.java
 [source,indent=0]
 ----
-        // add default and dropwizard metrics to prometheus simple clinet
-        DefaultExports.initialize();
-        // name of the registry needs to match the name at Vert.x startup
-        new DropwizardExports(SharedMetricRegistries.getOrCreate("vertx")).register();
+        CollectorRegistry registry =
+                ((PrometheusMeterRegistry) BackendRegistries.getDefaultNow()).getPrometheusRegistry();
+        (new StandardExports()).register(registry);
+        (new MemoryPoolsExports()).register(registry);
+        /* ... */
 ----
 
 3. Expose Prometheus Metrics via HTTP
@@ -50,8 +53,6 @@ Open http://localhost:8081 to access the metrics.
 .VerticleWeb.java
 [source,indent=0]
 ----
-        // map /manage/metrics to prometheus simple client
-        final Router apiRouter = Router.router(vertx);
-        router.mountSubRouter("/manage", apiRouter);
-        apiRouter.route("/metrics").getDelegate().handler(new MetricsHandler());
+        // map /metrics to prometheus
+        router.route("/metrics").getDelegate().handler(new MetricsHandler(registry));
 ----

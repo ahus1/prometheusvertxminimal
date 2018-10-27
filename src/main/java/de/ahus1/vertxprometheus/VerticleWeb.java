@@ -1,10 +1,11 @@
 package de.ahus1.vertxprometheus;
 
-import com.codahale.metrics.SharedMetricRegistries;
-import io.prometheus.client.dropwizard.DropwizardExports;
-import io.prometheus.client.hotspot.DefaultExports;
+import io.micrometer.prometheus.PrometheusMeterRegistry;
+import io.prometheus.client.CollectorRegistry;
+import io.prometheus.client.hotspot.*;
 import io.prometheus.client.vertx.MetricsHandler;
 import io.vertx.core.Future;
+import io.vertx.micrometer.backends.BackendRegistries;
 import io.vertx.rxjava.core.AbstractVerticle;
 import io.vertx.rxjava.core.http.HttpServer;
 import io.vertx.rxjava.ext.web.Router;
@@ -26,19 +27,23 @@ public class VerticleWeb extends AbstractVerticle {
     @Override
     public void start(Future<Void> fut) {
 
-        // add default and dropwizard metrics to prometheus simple clinet
-        DefaultExports.initialize();
-        // name of the registry needs to match the name at Vert.x startup
-        new DropwizardExports(SharedMetricRegistries.getOrCreate("vertx")).register();
+        // add default metrics to prometheus client
+        CollectorRegistry registry =
+                ((PrometheusMeterRegistry) BackendRegistries.getDefaultNow()).getPrometheusRegistry();
+        (new StandardExports()).register(registry);
+        (new MemoryPoolsExports()).register(registry);
+        (new BufferPoolsExports()).register(registry);
+        (new GarbageCollectorExports()).register(registry);
+        (new ThreadExports()).register(registry);
+        (new ClassLoadingExports()).register(registry);
+        (new VersionInfoExports()).register(registry);
 
         // setup standard router
         final Router router = Router.router(vertx);
         router.route("/").handler(StaticHandler.create().setCachingEnabled(false));
 
-        // map /manage/metrics to prometheus simple client
-        final Router apiRouter = Router.router(vertx);
-        router.mountSubRouter("/manage", apiRouter);
-        apiRouter.route("/metrics").getDelegate().handler(new MetricsHandler());
+        // map /metrics to prometheus
+        router.route("/metrics").getDelegate().handler(new MetricsHandler(registry));
 
         // create web server.
         vertx.createHttpServer().requestHandler(router::accept).rxListen(port).subscribe((httpServer) -> {

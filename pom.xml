@@ -9,9 +9,10 @@
     <version>0.0.1-SNAPSHOT</version>
 
     <properties>
-        <vertx.version>3.4.1</vertx.version>
+        <vertx.version>3.5.4</vertx.version>
+        <micrometer.version>1.0.7</micrometer.version>
         <log4j.version>2.7</log4j.version>
-        <simpleclient.version>0.0.21</simpleclient.version>
+        <simpleclient.version>0.4.0</simpleclient.version>
         <exec.mainClass>de.ahus1.vertxprometheus.VertxApplication</exec.mainClass>
     </properties>
 
@@ -23,8 +24,18 @@
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>
-            <artifactId>vertx-dropwizard-metrics</artifactId>
-            <version>${vertx.version}</version>
+            <artifactId>vertx-micrometer-metrics</artifactId>
+            <version>3.5.4</version>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+            <version>${micrometer.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
+            <version>${micrometer.version}</version>
         </dependency>
         <dependency>
             <groupId>io.prometheus</groupId>
@@ -34,11 +45,6 @@
         <dependency>
             <groupId>io.prometheus</groupId>
             <artifactId>simpleclient_hotspot</artifactId>
-            <version>${simpleclient.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.prometheus</groupId>
-            <artifactId>simpleclient_dropwizard</artifactId>
             <version>${simpleclient.version}</version>
         </dependency>
         <dependency>
