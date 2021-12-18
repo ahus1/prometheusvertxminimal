@@ -11,7 +11,7 @@
     <properties>
         <vertx.version>3.5.4</vertx.version>
         <micrometer.version>1.0.7</micrometer.version>
-        <log4j.version>2.16.0</log4j.version>
+        <log4j.version>2.17.0</log4j.version>
         <simpleclient.version>0.4.0</simpleclient.version>
         <exec.mainClass>de.ahus1.vertxprometheus.VertxApplication</exec.mainClass>
     </properties>
