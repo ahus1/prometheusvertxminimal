@@ -2,7 +2,7 @@
 
 == What to expect
 
-Run a Vert.x application an read metrics from JVM and Vert.x using a Prometheus endpoint.
+Run a Vert.x application and read metrics from JVM and Vert.x using a Prometheus endpoint.
 
 == Motivation
 
